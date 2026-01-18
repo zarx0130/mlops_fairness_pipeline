@@ -1,0 +1,20 @@
+# Data files - 
+data/raw/
+data/processed/
+*.csv
+*.pkl
+*.h5
+*.model
+*.data
+*.test
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Python
+__pycache__/
+*.pyc
+
+# Environment
+.env
+.venv
