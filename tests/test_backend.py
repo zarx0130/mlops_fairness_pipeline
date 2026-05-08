@@ -1,3 +1,5 @@
+# test_backend.py
+
 import unittest 
 import pandas as pd  
 import numpy as np 
@@ -67,7 +69,7 @@ class TestBackendFunctions(unittest.TestCase):
         """ test model training with adult dataset """
         X, y, protected, _ = preprocess(self.adult_data, 'income', 'sex')
         model, X_fair, y_fair, protected_fair = train_model(X, y, protected)
-        
+    
         self.assertIsNotNone(model)
         self.assertEqual(X_fair.shape[0], y_fair.shape[0])
         self.assertEqual(len(protected_fair), len(y_fair))
