@@ -55,7 +55,7 @@ class FairnessConfig:
         # auto-detect feature cols, numeric vs categorical
         self.feature_cols = [c for c in self.df.columns if c not in [self.target, self.protected_attr]]
         self.numeric_cols = self.df[self.feature_cols].select_dtypes(include=['int64', 'float64']).columns.tolist()
-        self.categorical_cols = self.df[self.feature_cols].select_dtypes(include=['object', 'category']).columns.tolist()
+        self.categorical_cols = self.df[self.feature_cols].select_dtypes(include=['object', 'category', 'string']).columns.tolist()
 
         print(f"\nauto-detected {len(self.feature_cols)} feature cols, {len(self.numeric_cols)} numeric cols, and {len(self.categorical_cols)} categorical cols")
 
@@ -89,7 +89,7 @@ def preprocess(df, target, protected_attr):
 
     # re-compute numeric and categorical after removing target/protected
     numeric_cols = X.select_dtypes(include=['int64', 'float64']).columns.tolist()
-    categorical_cols = X.select_dtypes(include=['object', 'category']).columns.tolist()
+    categorical_cols = X.select_dtypes(include=['object', 'category', 'string']).columns.tolist()
     
     # create preprocessor pipeline
     numeric_transformer = Pipeline(steps=[

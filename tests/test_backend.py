@@ -14,7 +14,7 @@ class TestBackendFunctions(unittest.TestCase):
     def setUpClass(cls):
         """ load datasets """
         # adult census
-        cls.adult_data = pd.read_csv('data/adult.data', header=None, nrows=500)
+        cls.adult_data = pd.read_csv('data/adult.data', header=None, nrows=20000)
 
         # make headers - requirement for pipeline functionality
         columns = ['age', 'workclass', 'fnlwgt', 'education', 'education-num',
@@ -23,7 +23,11 @@ class TestBackendFunctions(unittest.TestCase):
         cls.adult_data.columns = columns
 
         # employee attrition
-        cls.employee_data = pd.read_csv('data/Employee.csv', nrows=500)
+        cls.employee_data = pd.read_csv('data/Employee.csv', nrows=6000)
+
+        print("\nDatasets Loaded")
+        print(f"Adult: {len(cls.adult_data)} rows")
+        print(f"Employee: {len(cls.employee_data)} rows")
         
     # FairnessConfig tests (both datasets):
     def test_fairness_config_adult(self):
