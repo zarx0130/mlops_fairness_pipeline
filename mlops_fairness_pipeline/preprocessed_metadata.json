@@ -1,0 +1,27 @@
+{
+  "original_shape": [
+    32561,
+    15
+  ],
+  "train_size": 19536,
+  "test_size": 6512,
+  "fairness_size": 4316,
+  "target_distribution": {
+    "class_0": 24720,
+    "class_1": 7841
+  },
+  "protected_distribution": {
+    "unprivileged": 10771,
+    "privileged": 21790
+  },
+  "protected_attribute": "protected",
+  "favorable_outcome": 1,
+  "unfavorable_outcome": 0,
+  "privileged_group": 1,
+  "unprivileged_group": 0,
+  "preprocessing_date": "2026-04-07",
+  "scaling_method": "Auto-preprocessing pipeline",
+  "data_leakage_prevented": true,
+  "num_features": 99,
+  "original_col_num": 13
+}

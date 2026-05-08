@@ -1,0 +1,104 @@
+{
+  "model_info": {
+    "model_type": "RandomForestClassifier",
+    "model_name": "baseline_rf",
+    "trained_date": "2026-04-07 20:46:41",
+    "training_samples": 19536,
+    "n_features": 99,
+    "hyperparameters": {
+      "n_estimators": 200,
+      "max_depth": 15,
+      "class_weight": "balanced"
+    }
+  },
+  "performance": {
+    "train": {
+      "accuracy": 0.8149058149058149,
+      "roc_auc": 0.9277935229300778,
+      "confusion_matrix": [
+        [
+          11666,
+          3165
+        ],
+        [
+          451,
+          4254
+        ]
+      ]
+    },
+    "test": {
+      "accuracy": 0.796990171990172,
+      "roc_auc": 0.9084424121590384,
+      "confusion_matrix": [
+        [
+          3832,
+          1112
+        ],
+        [
+          210,
+          1358
+        ]
+      ]
+    },
+    "fairness_set": {
+      "accuracy": 0.8276181649675626,
+      "roc_auc": 0.920257207968454,
+      "confusion_matrix": [
+        [
+          2775,
+          621
+        ],
+        [
+          123,
+          797
+        ]
+      ]
+    }
+  },
+  "fairness_baseline": {
+    "train": {
+      "statistical_parity_difference": -0.3514484744085283,
+      "unprivileged_sel_rate": 0.14510166358595195,
+      "privileged_sel_rate": 0.4965501379944802,
+      "equal_opportunity_difference": -0.09354554147706784,
+      "unprivileged_tpr": 0.8245363766048502,
+      "privileged_tpr": 0.9180819180819181,
+      "predictive_parity_difference": 0.04604140668253853,
+      "unprivileged_precision": 0.613588110403397,
+      "privileged_precision": 0.5675467037208585,
+      "accuracy_difference": 0.16486500121017955,
+      "unprivileged_accuracy": 0.9249845964263709,
+      "privileged_accuracy": 0.7601195952161913
+    },
+    "test": {
+      "statistical_parity_difference": -0.34016409416586646,
+      "unprivileged_sel_rate": 0.14992927864214992,
+      "privileged_sel_rate": 0.4900933728080164,
+      "equal_opportunity_difference": -0.1552329973798846,
+      "unprivileged_tpr": 0.7339055793991416,
+      "privileged_tpr": 0.8891385767790262,
+      "predictive_parity_difference": -0.013844076593953814,
+      "unprivileged_precision": 0.5377358490566038,
+      "privileged_precision": 0.5515799256505576,
+      "accuracy_difference": 0.15493458770999913,
+      "unprivileged_accuracy": 0.9014615747289014,
+      "privileged_accuracy": 0.7465269870189023
+    },
+    "fairness_set": {
+      "statistical_parity_difference": -0.34012974976830396,
+      "unprivileged_sel_rate": 0.15848007414272475,
+      "privileged_sel_rate": 0.4986098239110287,
+      "equal_opportunity_difference": -0.06811791383219956,
+      "unprivileged_tpr": 0.8163265306122449,
+      "privileged_tpr": 0.8844444444444445,
+      "predictive_parity_difference": 0.029962607882780046,
+      "unprivileged_precision": 0.5847953216374269,
+      "privileged_precision": 0.5548327137546468,
+      "accuracy_difference": 0.1714550509731232,
+      "unprivileged_accuracy": 0.9133456904541242,
+      "privileged_accuracy": 0.741890639481001
+    },
+    "threshold": 0.05,
+    "description": "Baseline fairness from protected-balanced fairness set"
+  }
+}

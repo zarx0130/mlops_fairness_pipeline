@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MLOps Fairness Monitor</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f4f6f9;
+            min-height: 100vh;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        /* slight fade effect */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* top bar w gradient color */
+        .top-bar {
+            background: linear-gradient(135deg, #BFDABF 0%, #F5E8CE 100%);
+            padding: 20px 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .top-bar h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .top-bar-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .top-bar-controls label {
+            color: #2c3e50;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .top-bar-controls input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #CFCFE8;
+        }
+
+        .top-bar-controls input[type="range"] {
+            width: 120px;
+            accent-color: #CFCFE8;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-primary {
+            background: #CFCFE8;
+            color: #2c3e50;
+        }
+
+        .btn-primary:hover {
+            background: #b8b8d6;
+        }
+
+        .btn-primary:active {
+            background: #a3a3c5;
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background: #CFE1E8;
+            color: #2c3e50;
+        }
+
+        .btn-secondary:hover {
+            background: #b8cfd8;
+        }
+
+        .btn-secondary:active {
+            background: #a3bdc8;
+            transform: scale(0.98);
+        }
+
+        /* main */
+        .main-content {
+            padding: 20px;
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        /* configuration panel w formatting */
+        .config-panel {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .config-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .config-row {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .config-row label {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            font-weight: 500;
+        }
+
+        .config-row input[type="text"],
+        .config-row input[type="file"] {
+            padding: 8px 12px;
+            border: 1px solid #dfe4e6;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            background: #f8f9fa;
+        }
+
+        .config-row input[type="text"]:focus {
+            outline: none;
+            border-color: #CFCFE8;
+            background: #fff;
+        }
+
+        #configStatus {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: #27ae60;
+        }
+
+        /* top stat cards w grid placements */
+        .top-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card-top {
+            background: linear-gradient(135deg, #EDD9B5 0%, #FFF5E1 100%);
+            border-radius: 12px;
+            padding: 20px;
+            color: #2c3e50;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+            min-height: 120px;
+        }
+
+        .stat-card-top:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card-top.alert {
+            background: linear-gradient(135deg, #D9B0AD 0%, #F0E5CE 100%);
+        }
+
+        .stat-card-top h3 {
+            font-size: 0.75rem;
+            opacity: 0.8;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-card-top .value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-card-top .label {
+            font-size: 0.85rem;
+            opacity: 0.7;
+        }
+
+        /* grid layout for cards next to each other/on top w proper fit */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            grid-template-rows: auto auto;
+            gap: 15px;
+            margin-bottom: 15px;
+            min-width: 0;
+        }
+        
+        .dashboard-grid > .chart-card:first-child {
+            grid-column: 1;
+            grid-row: 1;
+        }
+        
+        .dashboard-grid > div:nth-child(2) {
+            grid-column: 2;
+            grid-row: 1 / span 2;
+        }
+        
+        .dashboard-grid > .chart-card:last-child {
+            grid-column: 1;
+            grid-row: 2;
+        }
+
+        /* charts card formatting(s) */
+        .chart-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            min-width: 0;
+        }
+
+        .chart-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .chart-wrapper {
+            height: 280px;
+            position: relative;
+        }
+
+        /*set smallerr for right col to fit better */
+        .small-stat-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 18px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            text-align: center;
+            margin-bottom: 15px;
+            min-width: 0;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .small-stat-card.stable {
+            background: linear-gradient(135deg, #F4EFDA 0%, #DCEAD3 100%);
+            color: #2c3e50;
+        }
+
+        .small-stat-card.stable h4,
+        .small-stat-card.stable .big-number,
+        .small-stat-card.stable .sub-text {
+            color: #2c3e50 !important;
+        }
+
+        .small-stat-card.unstable {
+            background: linear-gradient(135deg, #F2D1D0 0%, #D3BFDD 100%);
+            color: #2c3e50;
+        }
+
+        .small-stat-card.unstable h4,
+        .small-stat-card.unstable .big-number,
+        .small-stat-card.unstable .sub-text {
+            color: #2c3e50 !important;
+        }
+
+        .small-stat-card h4 {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+
+        .small-stat-card .big-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .small-stat-card .sub-text {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+        }
+
+        /* donut chart wrapper */
+        .donut-wrapper {
+            height: 160px;
+            margin: 15px 0;
+            position: relative;
+        }
+
+        /* bottom row for cards, wrap if needed */
+        .bottom-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .activity-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            min-width: 0;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+            font-weight: bold;
+        }
+
+        .activity-icon.red { background: #E8B5B3; color: #2c3e50; }
+        .activity-icon.blue { background: #B8D4E0; color: #2c3e50; }
+        .activity-icon.green { background: #C8E0C8; color: #2c3e50; }
+
+        .activity-details h4 {
+            font-size: 0.9rem;
+            color: #2c3e50;
+            margin-bottom: 4px;
+        }
+
+        .activity-details p {
+            font-size: 0.75rem;
+            color: #95a5a6;
+        }
+
+        /* tables formatting */
+        .table-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow-x: auto;
+            margin-bottom: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        th {
+            background: #F5E8CE;
+            padding: 10px;
+            text-align: left;
+            color: #2c3e50;
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            border-bottom: 2px solid #E8F5E8;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #ecf0f1;
+            color: #2c3e50;
+            font-size: 0.85rem;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .status-badge.success {
+            background: #D5EBD5;
+            color: #2c3e50;
+        }
+
+        .status-badge.danger {
+            background: #D0959F;
+            color: #2c3e50;
+        }
+
+        /* adjust and update based on request(s) */
+        @media (max-width: 768px) {
+            .top-bar h1 {
+                font-size: 1.2rem;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-card-top .value {
+                font-size: 1.5rem;
+            }
+
+            .small-stat-card .big-number {
+                font-size: 1.8rem;
+            }
+
+            .chart-wrapper {
+                height: 240px;
+            }
+
+            .donut-wrapper {
+                height: 140px;
+            }
+        }
+
+        @media (min-width: 1400px) {
+            .main-content {
+                max-width: 1600px;
+                margin: 0 auto;
+            }
+        }
+    </style>
+</head>
+<body>
+     <!-- top disclaimer msg before cards w instructions as well -->
+    <div style="background: #f8f9fa; padding: 10px 20px; text-align: center; border-bottom: 1px solid #e0e0e0;">
+        <span style="font-size: 0.85rem; color: #7f8c8d; font-style: italic;">
+            Bias Scenarios: Manual (physically inject using "Inject Bias"), Gradual (auto-inject gradually), Oscillating (auto-inject bias on/off), Bias-Correction (auto-inject, identify, correct model)<br>
+            ⓘ This is a demonstration pipeline - baseline statistics may vary slightly between batch simulations
+        </span>
+    </div>
+    
+    <!-- choice bar w control options/setting choice -->
+    <div class="top-bar">
+        <h1>MLOps Fairness Monitor</h1>
+        <div class="top-bar-controls">
+            <!-- for auto-sim options -->
+            <div style="display: inline-block; margin-right: 20px; padding-right: 20px; border-right: 2px solid #ddd;">
+                <label style="margin-right: 8px;">Scenario:</label>
+                <select id="scenarioSelect" style="padding: 6px 10px; border-radius: 6px; border: 1px solid #bdc3c7;">
+                    <option value="">Manual</option>
+                    <option value="gradual">Gradual</option>
+                    <option value="oscillating">Oscillating</option>
+                    <option value="correction">Bias-Correction</option>
+                </select>
+                <button class="btn btn-primary" id="startSimBtn" style="margin-left: 8px;">▶ Begin Auto-Run</button>
+                <button class="btn btn-secondary" id="pauseSimBtn" disabled style="margin-left: 4px;">⏸ Pause</button>
+                <button class="btn btn-secondary" id="stopSimBtn" disabled style="margin-left: 4px;">⏹ Stop</button>
+                <label style="margin-left: 12px;">Speed: <span id="speedValue">1x</span></label>
+                <input type="range" id="speedControl" min="1" max="5" value="1" style="width: 80px; vertical-align: middle; margin-left: 4px;">
+            </div>
+            
+            <!-- manual panel controls options -->
+            <label>
+                <input type="checkbox" id="biasToggle"> Inject Bias
+            </label>
+            <span id="intensityControl" style="display: none;">
+                <label style="margin-right: 8px;">Intensity: <span id="intensityValue">30</span>%</label>
+                <input type="range" id="biasIntensity" min="0" max="100" value="30">
+            </span>
+            <button class="btn btn-primary" id="runBtn">Run Batch</button>
+            <button class="btn btn-secondary" id="resetBtn">Reset</button>
+        </div>
+    </div>
+    
+    <!-- simulation progress bar (adds in once started) -->
+    <div id="simProgress" style="display: none; background: linear-gradient(135deg, #CFCFE8 0%, #D3BFDD 100%); padding: 12px 20px; text-align: center; font-weight: 600; color: #2c3e50; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <span style="margin-right: 20px;">Running Simulation...</span>
+        Batch: <span id="simBatch">0</span>/25 | 
+        Current Bias: <span id="simBias">0%</span> | 
+        Status: <span id="simStatus">INITIALIZING</span>
+    </div>
+
+    <!-- main configs -->
+    <div class="main-content">
+        <!-- config panel -->
+        <div class="config-panel fade-in">
+            <div class="config-title">Dataset Configuration</div>
+            <div class="config-row">
+                <label>Upload Dataset (.data, CSV):</label>
+                <input type="file" id="datasetUpload" accept=".csv">
+            </div>
+            <div class="config-row">
+                <label>Target Column:</label>
+                <input type="text" id="targetCol" placeholder="e.g., income, approved" style="width: 200px;">
+                <label style="margin-left: 20px;">Protected Attribute:</label>
+                <input type="text" id="protectedCol" placeholder="e.g., sex, race" style="width: 200px;">
+            </div>
+            <div class="config-row">
+                <button class="btn btn-primary" id="configBtn">Configure & Train Model</button>
+            </div>
+            <div id="configStatus"></div>
+        </div>
+
+        <!-- first 4 stat display cards -->
+        <div class="top-stats fade-in">
+            <div class="stat-card-top" id="statCard1">
+                <h3>Statistical Parity</h3>
+                <div class="value" id="statValue1">-</div>
+                <div class="label" id="statLabel1">Loading...</div>
+            </div>
+            <div class="stat-card-top" id="statCard2">
+                <h3>Equal Opportunity</h3>
+                <div class="value" id="statValue2">-</div>
+                <div class="label" id="statLabel2">Loading...</div>
+            </div>
+            <div class="stat-card-top" id="statCard3">
+                <h3>Predictive Parity</h3>
+                <div class="value" id="statValue3">-</div>
+                <div class="label" id="statLabel3">Loading...</div>
+            </div>
+            <div class="stat-card-top" id="statCard4">
+                <h3>Accuracy Equality</h3>
+                <div class="value" id="statValue4">-</div>
+                <div class="label" id="statLabel4">Loading...</div>
+            </div>
+        </div>
+
+        <!-- activity feed, total batch, status cards formatting -->
+        <div class="bottom-row fade-in">
+            <div class="activity-card">
+                <div class="chart-title">Activity Feed</div>
+                <div id="activityList" style="max-height: 300px; overflow-y: auto;">
+                    <div class="activity-item">
+                        <div class="activity-icon green">✓</div>
+                        <div class="activity-details">
+                            <h4>System Ready</h4>
+                            <p>Waiting for batch prediction</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="small-stat-card">
+                <h4>Total Batches</h4>
+                <div class="big-number" id="totalBatches">0</div>
+                <div class="donut-wrapper">
+                    <canvas id="batchDonut"></canvas>
+                </div>
+                <div class="sub-text">
+                    <span id="batchSub1">0</span> Processed • <span id="batchSub2">0</span> Pending
+                </div>
+            </div>
+
+            <div class="small-stat-card stable" id="customerCard">
+                <h4>System Status</h4>
+                <div class="big-number" id="systemStatus">STABLE</div>
+                <div class="donut-wrapper">
+                    <canvas id="statusDonut"></canvas>
+                </div>
+                <div class="sub-text">
+                    <span id="alertCount">0</span> Alerts • <span id="driftValue">0.00</span> Avg Drift
+                </div>
+            </div>
+        </div>
+
+        <!-- metrics over time, degration trend cards formatting -->
+        <div class="bottom-row fade-in">
+            <div class="chart-card" style="grid-column: span 2;">
+                <div class="chart-title">Fairness Metrics Over Time</div>
+                <div class="chart-wrapper">
+                    <canvas id="metricsChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-title">Degradation Trend</div>
+                <div class="chart-wrapper">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- batch comparison formatting -->
+        <div class="bottom-row fade-in">
+            <div class="table-card" style="grid-column: span 3;">
+                <div class="chart-title">Batch Comparison</div>
+                <div style="max-height: 400px; overflow-y: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Batch ID</th>
+                                <th>Stat Parity</th>
+                                <th>Equal Opp</th>
+                                <th>Pred Parity</th>
+                                <th>Accuracy</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr>
+                                <td colspan="6" style="text-align: center; color: #95a5a6;">No data available</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- batch history formatting - generate batch blocks-->
+        <div class="bottom-row fade-in">
+            <div class="chart-card" style="grid-column: span 3;">
+                <div class="chart-title">Batch History</div>
+                <div style="padding: 20px 0;">
+                    <div id="batchHistoryGrid" style="display: flex; flex-direction: column; gap: 8px; max-width: 100%;">
+                        <div id="batchRow1" style="display: grid; grid-template-columns: repeat(13, 1fr); gap: 8px;"></div>
+                        <div id="batchRow2" style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 8px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <script>
+        // slightly fade as scroll to pop up cards 
+        function handleScrollAnimations() {
+            const elements = document.querySelectorAll('.fade-in');
+            elements.forEach(el => {
+                const rect = el.getBoundingClientRect();
+                const isVisible = rect.top < window.innerHeight - 100;
+                if (isVisible) {
+                    el.classList.add('visible');
+                } else {
+                    el.classList.remove('visible');
+                }
+            });
+        }
+
+        window.addEventListener('scroll', handleScrollAnimations);
+        window.addEventListener('load', handleScrollAnimations);
+        handleScrollAnimations();
+
+        // data storage
+        let history = [];
+        let alerts = [];
+        let batchNum = 0;
+        let chart = null;
+        let trendChart = null;
+        let historyChart = null;
+        let batchDonut = null;
+        let statusDonut = null;
+        let baseline = null;
+        
+        // auto-simulation state/progress
+        let autoSimulation = {
+            running: false,
+            paused: false,
+            currentBatch: 0,
+            scenario: null,
+            interval: null,
+            baseSpeed: 2000 // default is 2 seconds per batch at 1x speed but other options available
+        };
+        
+        // scenario definitions  for each option (bias levels per batch - 25 batches per option)
+        const scenarios = {
+            gradual: [
+                {batch: 1, bias: 0},
+                {batch: 2, bias: 0},
+                {batch: 3, bias: 0},
+                {batch: 4, bias: 0},
+                {batch: 5, bias: 0},
+                {batch: 6, bias: 0.15},
+                {batch: 7, bias: 0.25},
+                {batch: 8, bias: 0.35},
+                {batch: 9, bias: 0.45},
+                {batch: 10, bias: 0.55},
+                {batch: 11, bias: 0.65},
+                {batch: 12, bias: 0.70},
+                {batch: 13, bias: 0.75},
+                {batch: 14, bias: 0.70},
+                {batch: 15, bias: 0.65},
+                {batch: 16, bias: 0.55},
+                {batch: 17, bias: 0.45},
+                {batch: 18, bias: 0.35},
+                {batch: 19, bias: 0.25},
+                {batch: 20, bias: 0.15},
+                {batch: 21, bias: 0.05},
+                {batch: 22, bias: 0},
+                {batch: 23, bias: 0},
+                {batch: 24, bias: 0},
+                {batch: 25, bias: 0}
+            ],
+            oscillating: [
+                {batch: 1, bias: 0},
+                {batch: 2, bias: 0},
+                {batch: 3, bias: 0.50},
+                {batch: 4, bias: 0.60},
+                {batch: 5, bias: 0.20},
+                {batch: 6, bias: 0},
+                {batch: 7, bias: 0},
+                {batch: 8, bias: 0.55},
+                {batch: 9, bias: 0.65},
+                {batch: 10, bias: 0.30},
+                {batch: 11, bias: 0.10},
+                {batch: 12, bias: 0},
+                {batch: 13, bias: 0.70},
+                {batch: 14, bias: 0.75},
+                {batch: 15, bias: 0.40},
+                {batch: 16, bias: 0.15},
+                {batch: 17, bias: 0},
+                {batch: 18, bias: 0},
+                {batch: 19, bias: 0},
+                {batch: 20, bias: 0},
+                {batch: 21, bias: 0},
+                {batch: 22, bias: 0},
+                {batch: 23, bias: 0},
+                {batch: 24, bias: 0},
+                {batch: 25, bias: 0}
+            ],
+            correction: [
+                {batch: 1, bias: 0.70},
+                {batch: 2, bias: 0.72},
+                {batch: 3, bias: 0.75},
+                {batch: 4, bias: 0.73},
+                {batch: 5, bias: 0.70},
+                {batch: 6, bias: 0.65},
+                {batch: 7, bias: 0.60},
+                {batch: 8, bias: 0.50},
+                {batch: 9, bias: 0.40},
+                {batch: 10, bias: 0.30},
+                {batch: 11, bias: 0.20},
+                {batch: 12, bias: 0.10},
+                {batch: 13, bias: 0.05},
+                {batch: 14, bias: 0},
+                {batch: 15, bias: 0},
+                {batch: 16, bias: 0},
+                {batch: 17, bias: 0},
+                {batch: 18, bias: 0},
+                {batch: 19, bias: 0},
+                {batch: 20, bias: 0},
+                {batch: 21, bias: 0},
+                {batch: 22, bias: 0},
+                {batch: 23, bias: 0},
+                {batch: 24, bias: 0},
+                {batch: 25, bias: 0}
+            ]
+        };
+
+        // color palette - pink/beige/purple/muted rainbow
+        const colors = {
+            pink: '#FFB8B5',      
+            beige1: '#FFCFA0',    
+            beige2: '#FFF4C8',    
+            green: '#C8E6C9',   
+            blue: '#B3D9E8',   
+            purple1: '#C5B5E8',  
+            purple2: '#D9A5D9'  
+        };
+
+        // update top stat cards
+        function updateStatCards(metrics) {
+            const threshold = 0.05;
+            
+            const stats = [
+                { value: metrics.stat_diff, baseline: baseline?.stat_parity || -0.33 },
+                { value: metrics.eq_opp_diff, baseline: baseline?.equal_opp || -0.17 },
+                { value: metrics.pred_parity_diff, baseline: baseline?.pred_parity || 0.01 },
+                { value: metrics.acc_diff, baseline: baseline?.accuracy || 0.14 }
+            ];
+
+            stats.forEach((stat, i) => {
+                const degraded = Math.abs(stat.value) > Math.abs(stat.baseline) + threshold;
+                document.getElementById(`statValue${i+1}`).textContent = stat.value.toFixed(4);
+                document.getElementById(`statLabel${i+1}`).textContent = degraded ? '⚠️ Degraded' : '✓ Stable';
+                
+                const card = document.getElementById(`statCard${i+1}`);
+                if (degraded) {
+                    card.classList.add('alert');
+                } else {
+                    card.classList.remove('alert');
+                }
+            });
+        }
+
+        // update system stat card
+        function updateSystemStatus() {
+            if (history.length === 0) {
+                document.getElementById('systemStatus').textContent = 'STABLE';
+                const customerCard = document.getElementById('customerCard');
+                customerCard.classList.remove('unstable');
+                customerCard.classList.add('stable');
+                return;
+            }
+            
+            const threshold = 0.05;
+            
+            // check recent 5 batches for violations
+            const recentBatches = history.slice(-5);
+            let recentViolations = 0;
+           
+            recentBatches.forEach(batch => {  // loop through most recent
+                let batchViolationCount = 0;
+                if (Math.abs(batch.stat_diff) > Math.abs(baseline.stat_parity) + threshold) batchViolationCount++;
+                if (Math.abs(batch.eq_opp_diff) > Math.abs(baseline.equal_opp) + threshold) batchViolationCount++;
+                if (Math.abs(batch.pred_parity_diff) > Math.abs(baseline.pred_parity) + threshold) batchViolationCount++;
+                if (Math.abs(batch.acc_diff) > Math.abs(baseline.accuracy) + threshold) batchViolationCount++;
+                
+                if (batchViolationCount > 0) recentViolations++;  // increment if recent
+            });
+            
+            // calculate statsus ratio (stable vs unstable batches)
+            const stable = Math.max(0, history.length - alerts.length);
+            const unstable = alerts.length;
+            const total = stable + unstable;
+            const greenPercentage = (stable / total) * 100;
+            
+            // only set it STABLE if >70% green in donut & no viols in recent batches
+            let status;
+            if (greenPercentage >= 70 && recentViolations === 0) {
+                status = 'STABLE';
+            } else if (greenPercentage < 30 || recentViolations >= 4) {
+                // less than 30% clean w/ 4/5 recent batches violated
+                status = 'CRITICAL';
+            } else {
+                status = 'WARNING';
+            }
+            
+            document.getElementById('systemStatus').textContent = status;
+            
+            const customerCard = document.getElementById('customerCard');
+            customerCard.classList.remove('stable', 'unstable');
+            
+            if (status === 'STABLE') {
+                customerCard.classList.add('stable');
+            } else {
+                customerCard.classList.add('unstable');
+            }
+        }
+
+        // update status card (donut chart)
+        function updateDonuts() {
+            const batchCtx = document.getElementById('batchDonut');
+            if (batchDonut) batchDonut.destroy();
+
+            const processed = history.length;
+            const pending = Math.max(0, 25 - processed);
+
+            batchDonut = new Chart(batchCtx, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [processed, pending],
+                        backgroundColor: ['#EDD9B5', '#ecf0f1'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            document.getElementById('batchSub1').textContent = processed;
+            document.getElementById('batchSub2').textContent = pending;
+
+            const statusCtx = document.getElementById('statusDonut');
+            if (statusDonut) statusDonut.destroy();
+
+            const stable = Math.max(0, history.length - alerts.length);
+            const unstable = alerts.length;
+
+            statusDonut = new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [stable, unstable],
+                        backgroundColor: [colors.green, colors.pink],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        // update activity for card
+        function updateActivity() {
+            const activityList = document.getElementById('activityList');
+            
+            if (alerts.length === 0) {
+                activityList.innerHTML = `
+                    <div class="activity-item">
+                        <div class="activity-icon green">✓</div>
+                        <div class="activity-details">
+                            <h4>System Stable</h4>
+                            <p>No alerts detected</p>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            const actColors = ['red', 'blue', 'green'];
+            const labels = ['!', 'i', '✓'];
+            
+            activityList.innerHTML = alerts.slice().reverse().map((a, i) => `
+                <div class="activity-item">
+                    <div class="activity-icon ${actColors[i % 3]}">${labels[i % 3]}</div>
+                    <div class="activity-details">
+                        <h4>Batch ${a.batch_id}: ${a.metric_name}</h4>
+                        <p>Violation: ${(a.metric_val || a.value).toFixed(4)}</p>
+                    </div>
+                </div>
+            `).join('');
+            
+            // scroll to show newest first
+            activityList.scrollTop = 0;
+        }
+
+        // update table info
+        function updateTable() {
+            const tbody = document.getElementById('tableBody');
+            
+            if (history.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #95a5a6;">No data available</td></tr>';
+                return;
+            }
+
+             if (!baseline) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #e74c3c;">Error: Baseline not loaded. Please configure dataset.</td></tr>';
+                return;
+            }
+
+            const threshold = 0.05;
+            tbody.innerHTML = history.slice().reverse().map(h => {
+                // calculate deviations from baseline
+                const statDeviation = Math.abs(h.stat_diff - baseline.stat_parity);
+                const eqOppDeviation = Math.abs(h.eq_opp_diff - baseline.equal_opp);
+                const predParityDeviation = Math.abs(h.pred_parity_diff - baseline.pred_parity);
+                const accDeviation = Math.abs(h.acc_diff - baseline.accuracy);
+
+                 const hasViolation = 
+                    statDeviation > threshold ||
+                    eqOppDeviation > threshold ||
+                    predParityDeviation > threshold ||
+                    accDeviation > threshold;
+                        
+                return `
+                    <tr>
+                        <td>Batch ${h.batch_id}</td>
+                        <td>${h.stat_diff.toFixed(4)}</td>
+                        <td>${h.eq_opp_diff.toFixed(4)}</td>
+                        <td>${h.pred_parity_diff.toFixed(4)}</td>
+                        <td>${h.acc_diff.toFixed(4)}</td>
+                        <td>
+                            <span class="status-badge ${hasViolation ? 'danger' : 'success'}">
+                                ${hasViolation ? 'Unfair' : 'Fair'}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // update main chart metrics
+        function updateChart() {
+            const ctx = document.getElementById('metricsChart');
+            if (chart) chart.destroy();
+
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: history.map(h => `B${h.batch_id}`),
+                    datasets: [
+                        {
+                            label: 'Stat Parity',
+                            data: history.map(h => h.stat_diff),
+                            borderColor: colors.beige1,
+                            backgroundColor: colors.beige1 + '40',
+                            tension: 0.4,
+                            borderWidth: 2,
+                            pointRadius: 4,
+                            fill: true
+                        },
+                        {
+                            label: 'Equal Opp',
+                            data: history.map(h => h.eq_opp_diff),
+                            borderColor: colors.purple1,
+                            backgroundColor: colors.purple1 + '40',
+                            tension: 0.4,
+                            borderWidth: 2,
+                            pointRadius: 4,
+                            fill: true
+                        },
+                        {
+                            label: 'Pred Parity',
+                            data: history.map(h => h.pred_parity_diff || 0),
+                            borderColor: colors.blue,
+                            backgroundColor: colors.blue + '40',
+                            tension: 0.4,
+                            borderWidth: 2,
+                            pointRadius: 4,
+                            fill: true
+                        },
+                        {
+                            label: 'Accuracy',
+                            data: history.map(h => h.acc_diff),
+                            borderColor: colors.green,
+                            backgroundColor: colors.green + '40',
+                            tension: 0.4,
+                            borderWidth: 2,
+                            pointRadius: 4,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top', labels: { usePointStyle: true, padding: 12, font: { size: 10 } } }
+                    },
+                    scales: {
+                        y: { grid: { color: '#f0f0f0' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // trend chart for batches 
+        function updateTrendChart() {
+            const ctx = document.getElementById('trendChart');
+            if (trendChart) trendChart.destroy();
+
+            const degradationTrend = history.map(h => {
+                if (!baseline) return 0;
+                return (Math.abs(h.stat_diff - baseline.stat_parity) + 
+                       Math.abs(h.eq_opp_diff - baseline.equal_opp) +
+                       Math.abs(h.pred_parity_diff - baseline.pred_parity) +
+                       Math.abs(h.acc_diff - baseline.accuracy)) * 100;
+            });
+
+            trendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: history.map(h => `B${h.batch_id}`),
+                    datasets: [{
+                        data: degradationTrend,
+                        backgroundColor: colors.pink + '40',
+                        borderColor: colors.pink,
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointBackgroundColor: colors.pink
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#f0f0f0' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // function to interpolate between hex colors 
+        function interpolateColor(color1, color2, factor) {
+            const c1 = parseInt(color1.slice(1), 16);
+            const c2 = parseInt(color2.slice(1), 16);
+            
+            const r1 = (c1 >> 16) & 0xff;
+            const g1 = (c1 >> 8) & 0xff;
+            const b1 = c1 & 0xff;
+            
+            const r2 = (c2 >> 16) & 0xff;
+            const g2 = (c2 >> 8) & 0xff;
+            const b2 = c2 & 0xff;
+            
+            const r = Math.round(r1 + factor * (r2 - r1));
+            const g = Math.round(g1 + factor * (g2 - g1));
+            const b = Math.round(b1 + factor * (b2 - b1));
+            
+            return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+        }
+
+        // history chart to track batch violation locations
+        function updateHistoryChart() {
+            const row1 = document.getElementById('batchRow1');
+            const row2 = document.getElementById('batchRow2');
+            if (!row1 || !row2) return;
+            
+            row1.innerHTML = '';
+            row2.innerHTML = '';
+            
+            // blocks for each batch - 25 total split between rows
+            for (let i = 1; i <= 25; i++) {
+                const batch = history.find(h => h.batch_id === i);
+                const block = document.createElement('div');
+                
+                // get bias intensity for each batch
+                let biasIntensity = 0;
+                if (batch) {
+                    const threshold = 0.05;
+
+                    // calculation amount deviations for each metric
+                    const statDev = Math.abs(Math.abs(batch.stat_diff) - Math.abs(baseline.stat_parity));
+                    const eqOppDev = Math.abs(Math.abs(batch.eq_opp_diff) - Math.abs(baseline.equal_opp));
+                    const predDev = Math.abs(Math.abs(batch.pred_parity_diff) - Math.abs(baseline.pred_parity));
+                    const accDev = Math.abs(Math.abs(batch.acc_diff) - Math.abs(baseline.accuracy));
+
+                    // (0 = at baseline, 1 = 1x threshold away, 2 = 2x threshold)
+                    const avgDeviation = (statDev + eqOppDev + predDev + accDev) / 4;
+                    // 0-1 scale 
+                    biasIntensity = Math.min(avgDeviation / 0.15, 1);
+                }
+                
+                // color for level of intensity
+                let bgColor;
+                if (!batch) {
+                    bgColor = '#ecf0f1'; // grey unprocessed
+                } else if (biasIntensity === 0) {
+                    bgColor = '#C8DEC8'; //  green - stable
+                } else if (biasIntensity < 0.33) { // gradient green to yellow
+                    bgColor = interpolateColor('#C8DEC8', '#E8DCBE', biasIntensity / 0.33);
+                } else if (biasIntensity < 0.67) { // gradient yellow to peach
+                    bgColor = interpolateColor('#E8DCBE', '#E8CCB8', (biasIntensity - 0.33) / 0.34);
+                } else { // gradient peach to rose CRITICAL
+                    bgColor = interpolateColor('#E8CCB8', '#D0959F', (biasIntensity - 0.67) / 0.33);
+                }
+                                
+                let gradientBg;
+                if (!batch) {
+                    gradientBg = bgColor; // grey stays solid
+                } else {
+                    // ligthen color for gradient
+                    const lightenColor = (hex, percent) => {
+                        const num = parseInt(hex.slice(1), 16);
+                        const amt = Math.round(2.55 * percent);
+                        const R = Math.min(255, (num >> 16) + amt);
+                        const G = Math.min(255, ((num >> 8) & 0x00FF) + amt);
+                        const B = Math.min(255, (num & 0x0000FF) + amt);
+                        return `#${(0x1000000 + (R << 16) + (G << 8) + B).toString(16).slice(1)}`;
+                    };
+                    
+                    const lighterColor = lightenColor(bgColor, 9);
+                    gradientBg = `linear-gradient(135deg, ${bgColor} 0%, ${lighterColor} 100%)`;
+                }
+                
+                block.style.cssText = `
+                    background: ${gradientBg};
+                    border: 2px solid ${batch ? '#bdc3c7' : '#dfe4e6'};
+                    border-radius: 6px;
+                    padding: 15px 5px;
+                    text-align: center;
+                    font-size: 0.75rem;
+                    font-weight: 600;
+                    color: #2c3e50;
+                    min-height: 60px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    cursor: ${batch ? 'pointer' : 'default'};
+                    transition: transform 0.2s, box-shadow 0.2s;
+                `;
+                
+                block.innerHTML = `
+                    <div style="font-size: 0.9rem; margin-bottom: 4px;">${i}</div>
+                    <div style="font-size: 0.65rem; opacity: 0.7;">${batch ? (biasIntensity === 0 ? 'Fair' : 'Biased') : 'Pending'}</div>
+                `;
+                
+                if (batch) {
+                    block.addEventListener('mouseenter', () => {
+                        block.style.transform = 'translateY(-3px)';
+                        block.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                    });
+                    block.addEventListener('mouseleave', () => {
+                        block.style.transform = 'translateY(0)';
+                        block.style.boxShadow = 'none';
+                    });
+                }
+                
+                // add row 1 (batches 1-13) o row 2 (batches 14-25)
+                if (i <= 13) {
+                    row1.appendChild(block);
+                } else {
+                    row2.appendChild(block);
+                }
+            }
+        }
+       
+        
+        // auto-simulation functions behavior formatting
+        function startSimulation() {
+            const scenarioName = document.getElementById('scenarioSelect').value;
+            if (!scenarioName) {
+                alert('Please select a scenario first');
+                return;
+            }
+           // check if already ran on 25 batches
+            if (batchNum >= 25) {
+                alert('Please reset data to continue.');
+                return;
+            }
+                    
+            autoSimulation.scenario = scenarios[scenarioName];
+            autoSimulation.running = true;
+            autoSimulation.paused = false;
+            autoSimulation.currentBatch = 0;
+            
+            //  UI updates w buttons
+            document.getElementById('startSimBtn').disabled = true;
+            document.getElementById('pauseSimBtn').disabled = false;
+            document.getElementById('stopSimBtn').disabled = false;
+            document.getElementById('simProgress').style.display = 'block';
+            document.getElementById('scenarioSelect').disabled = true;
+            
+            // no manual controls when running simulations
+            document.getElementById('biasToggle').disabled = true;
+            document.getElementById('runBtn').disabled = true;
+            
+            runSimulationLoop();
+        }
+        
+        async function runSimulationLoop() {
+            if (!autoSimulation.running || autoSimulation.paused) return;
+            
+            autoSimulation.currentBatch++;
+            
+            if (autoSimulation.currentBatch > 25) {
+                stopSimulation();
+                alert('✓ Simulation complete! Total batches: 25');
+                return;
+            }
+            
+            // calc bias level for this batch
+            const batchData = autoSimulation.scenario[autoSimulation.currentBatch - 1];
+            const biasLevel = batchData.bias;
+            
+            // Update progress display
+            document.getElementById('simBatch').textContent = autoSimulation.currentBatch;
+            document.getElementById('simBias').textContent = Math.round(biasLevel * 100) + '%';
+            
+            // run the batch with calculated bias level (w simulateBatch)
+            batchNum++;
+            const metrics = await simulateBatch(biasLevel > 0, biasLevel);
+
+            if (!metrics) return;  // if backend fails
+            
+            history.push({ batch_id: batchNum, ...metrics });
+            checkViolations(metrics);
+            updateStatCards(metrics);
+            updateActivity();
+            updateChart();
+            updateTrendChart();
+            updateHistoryChart();
+            updateDonuts();
+            updateTable();
+            
+            document.getElementById('totalBatches').textContent = history.length;
+            document.getElementById('alertCount').textContent = alerts.length;
+            
+            const avgDrift = (Math.abs(metrics.stat_diff - baseline.stat_parity) +
+                             Math.abs(metrics.eq_opp_diff - baseline.equal_opp) +
+                             Math.abs(metrics.pred_parity_diff - baseline.pred_parity) +
+                             Math.abs(metrics.acc_diff - baseline.accuracy)) / 4;
+            document.getElementById('driftValue').textContent = avgDrift.toFixed(4);
+            
+            updateSystemStatus();
+            
+            // update sim status
+            const statusText = document.getElementById('systemStatus').textContent;
+            document.getElementById('simStatus').textContent = statusText;
+            
+            // flash if high bias 
+            if (biasLevel > 0.5) {
+                flashAlertIndicator();
+            }
+            
+            // plan next batch interval
+            const speed = document.getElementById('speedControl').value;
+            const delay = autoSimulation.baseSpeed / speed;
+            
+            autoSimulation.interval = setTimeout(runSimulationLoop, delay);
+        }
+        
+        function pauseSimulation() {
+            autoSimulation.paused = true;
+            document.getElementById('pauseSimBtn').textContent = '▶ Resume';
+            document.getElementById('pauseSimBtn').onclick = resumeSimulation;
+            clearTimeout(autoSimulation.interval);
+        }
+        
+        function resumeSimulation() {
+            autoSimulation.paused = false;
+            document.getElementById('pauseSimBtn').textContent = '⏸ Pause';
+            document.getElementById('pauseSimBtn').onclick = pauseSimulation;
+            runSimulationLoop();
+        }
+        
+        function stopSimulation() {
+            autoSimulation.running = false;
+            autoSimulation.paused = false;
+            clearTimeout(autoSimulation.interval);
+            
+            // update UI
+            document.getElementById('startSimBtn').disabled = false;
+            document.getElementById('pauseSimBtn').disabled = true;
+            document.getElementById('pauseSimBtn').textContent = '⏸ Pause';
+            document.getElementById('stopSimBtn').disabled = true;
+            document.getElementById('simProgress').style.display = 'none';
+            document.getElementById('scenarioSelect').disabled = false;
+            
+            // re allow manual controls
+            document.getElementById('biasToggle').disabled = false;
+            document.getElementById('runBtn').disabled = false;
+        }
+        
+        function flashAlertIndicator() {
+            // flash count card when viol
+            const alertCard = document.getElementById('alertCount').closest('.stat-card');
+            if (alertCard) {
+                alertCard.style.transition = 'all 0.3s';
+                alertCard.style.background = 'linear-gradient(135deg, #F2D1D0 0%, #F7E2C8 100%)';
+                alertCard.style.transform = 'scale(1.05)';
+                setTimeout(() => {
+                    alertCard.style.background = '';
+                    alertCard.style.transform = '';
+                }, 300);
+            }
+        }
+
+        // event listeners ******
+        
+        // auto-sim controls
+        document.getElementById('startSimBtn').addEventListener('click', startSimulation);
+        document.getElementById('pauseSimBtn').addEventListener('click', pauseSimulation);
+        document.getElementById('stopSimBtn').addEventListener('click', stopSimulation);
+        document.getElementById('speedControl').addEventListener('input', (e) => {
+            document.getElementById('speedValue').textContent = e.target.value + 'x';
+        });
+        
+        // manual controll
+        document.getElementById('biasToggle').addEventListener('change', (e) => {
+            document.getElementById('intensityControl').style.display = 
+                e.target.checked ? 'inline' : 'none';
+        });
+
+        document.getElementById('biasIntensity').addEventListener('input', (e) => {
+            document.getElementById('intensityValue').textContent = e.target.value;
+        });
+
+        // run button lsitener
+        document.getElementById('runBtn').addEventListener('click', async () => {
+            // check if already ran on 25 batches
+            if (batchNum >= 25) {
+                alert('Please reset data to continue.');
+                return;
+            }
+            
+            batchNum++;
+            const biasEnabled = document.getElementById('biasToggle').checked;
+            const intensity = document.getElementById('biasIntensity').value / 100;
+            const metrics = await simulateBatch(biasEnabled, intensity);
+
+            if (!metrics) return;  // if backend fails
+            
+            history.push({ batch_id: batchNum, ...metrics });
+            checkViolations(metrics);
+            updateStatCards(metrics);
+            updateActivity();
+            updateChart();
+            updateTrendChart();
+            updateHistoryChart();
+            updateDonuts();
+            updateTable();
+            
+            document.getElementById('totalBatches').textContent = history.length;
+            document.getElementById('alertCount').textContent = alerts.length;
+            
+            const avgDrift = (Math.abs(metrics.stat_diff - baseline.stat_parity) +
+                             Math.abs(metrics.eq_opp_diff - baseline.equal_opp) +
+                             Math.abs(metrics.pred_parity_diff - baseline.pred_parity) +
+                             Math.abs(metrics.acc_diff - baseline.accuracy)) / 4;
+            document.getElementById('driftValue').textContent = avgDrift.toFixed(4);
+            
+            updateSystemStatus();
+        });
+
+        // reset button listener
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            if (confirm('Reset all data? This will clear all batches and alerts.')) {
+                // clear data
+                history = [];
+                alerts = [];
+                batchNum = 0;
+
+                // reset UI 
+                document.getElementById('totalBatches').textContent = '0';
+                document.getElementById('alertCount').textContent = '0';
+                document.getElementById('driftValue').textContent = '0.00';
+                document.getElementById('systemStatus').textContent = 'STABLE';
+                document.getElementById('batchSub1').textContent = '0';
+                document.getElementById('batchSub2').textContent = '25';
+                
+                // reset stat cards
+                for (let i = 1; i <= 4; i++) {
+                    document.getElementById(`statValue${i}`).textContent = '-';
+                    document.getElementById(`statLabel${i}`).textContent = 'No data';
+                    document.getElementById(`statCard${i}`).classList.remove('alert');
+                }
+                
+                // reset stat card to stable 
+                const customerCard = document.getElementById('customerCard');
+                customerCard.classList.remove('unstable');
+                customerCard.classList.add('stable');
+                
+                // destroy all charts
+                if (chart) { chart.destroy(); chart = null; }
+                if (trendChart) { trendChart.destroy(); trendChart = null; }
+                if (batchDonut) { batchDonut.destroy(); batchDonut = null; }
+                if (statusDonut) { statusDonut.destroy(); statusDonut = null; }
+                
+                // reset activity feed
+                document.getElementById('activityList').innerHTML = `
+                    <div class="activity-item">
+                        <div class="activity-icon green">✓</div>
+                        <div class="activity-details">
+                            <h4>System Ready</h4>
+                            <p>Waiting for batch prediction</p>
+                        </div>
+                    </div>
+                `;
+                
+                // reset table
+                document.getElementById('tableBody').innerHTML = '<tr><td colspan="6" style="text-align: center; color: #95a5a6;">No data available</td></tr>';
+                
+                // reset batch history grid
+                const row1 = document.getElementById('batchRow1');
+                const row2 = document.getElementById('batchRow2');
+                if (row1) row1.innerHTML = '';
+                if (row2) row2.innerHTML = '';
+                updateHistoryChart();
+                
+                // recreate stat donut graph/chart
+                updateDonuts();
+                
+                console.log('✓ Reset complete - all data cleared');
+            }
+        });
+        
+        // config button listener
+        document.getElementById('configBtn').addEventListener('click', async () => {
+            const fileInput = document.getElementById('datasetUpload');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('Please select a CSV file');
+                return;
+            }
+            
+            //const targetCol = prompt('Enter target column name (e.g., "income"):');
+            //const protectedCol = prompt('Enter protected attribute column name (e.g., "sex"):');
+            const targetCol = document.getElementById('targetCol').value.trim();
+            const protectedCol = document.getElementById('protectedCol').value.trim();
+
+            if (!targetCol || !protectedCol) {
+                alert('Both column names are required');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('dataset', file);
+            formData.append('target', targetCol);
+            formData.append('protected_attr', protectedCol);
+            
+            try {
+                const response = await fetch('http://localhost:5000/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    // update baseline from backend
+                    baseline = {
+                        stat_parity: data.baseline.stat_diff,
+                        equal_opp: data.baseline.eq_opp_diff,
+                        pred_parity: data.baseline.pred_parity_diff,
+                        accuracy: data.baseline.acc_diff
+                    };
+                    alert('Dataset loaded and model trained! Ready to run batches.');
+                } else {
+                    alert('Error: ' + data.message);
+                }
+                
+            } catch (error) {
+                console.error('Upload error:', error);
+                alert('Error uploading dataset. Make sure backend is running.');
+            }
+        });
+        
+
+        // simulate batch func w bias and intensity taken from input
+        async function simulateBatch(hasBias, intensity) {
+            try {
+                const response = await fetch('http://localhost:5000/run_batch', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        bias: hasBias,
+                        intensity: intensity
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Backend error');
+                }
+                
+                return await response.json();
+                
+            } catch (error) {
+                console.error('Error calling backend:', error);
+                alert('Error running batch. Make sure backend is running.');
+                return null;
+            }
+        }
+
+        function checkViolations(metrics) {
+            const threshold = 0.05;
+            
+            if (Math.abs(metrics.stat_diff) > Math.abs(baseline.stat_parity) + threshold) {
+                alerts.push({
+                    batch_id: batchNum,
+                    metric_name: 'statistical parity',
+                    metric_val: metrics.stat_diff,
+                    severity: 'critical'
+                });
+            }
+
+            if (Math.abs(metrics.eq_opp_diff) > Math.abs(baseline.equal_opp) + threshold) {
+                alerts.push({
+                    batch_id: batchNum,
+                    metric_name: 'equal opportunity',
+                    metric_val: metrics.eq_opp_diff,
+                    severity: 'critical'
+                });
+            }
+
+            if (alerts.length > 10) alerts = alerts.slice(-10);
+        }
+    </script>
+</body>
+</html>
