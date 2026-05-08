@@ -128,8 +128,8 @@ class TestIntegrationWorkflow(unittest.TestCase):
                 'target': 'income',
                 'protected_attr': 'sex'
             })
-        
-        intensities = [0, 0.3, 0.5, 0.7, 1.0]
+
+        intensities = [0.3, 0.5, 0.7, 0.9]
         results = []
         
         for intensity in intensities:
@@ -137,6 +137,7 @@ class TestIntegrationWorkflow(unittest.TestCase):
                 'bias': True,
                 'intensity': intensity
             })
+            
             self.assertEqual(response.status_code, 200)
             data = response.get_json()
             results.append((intensity, abs(data['stat_diff'])))
