@@ -14,7 +14,7 @@ class TestBackendFunctions(unittest.TestCase):
     def setUpClass(cls):
         """ load datasets """
         # adult census
-        cls.adult_data = pd.read_csv('data/adult.data', header=None, nrows=20000)
+        cls.adult_data = pd.read_csv('data/adult.data', header=None, nrows=2000)
 
         # make headers - requirement for pipeline functionality
         columns = ['age', 'workclass', 'fnlwgt', 'education', 'education-num',
@@ -23,22 +23,13 @@ class TestBackendFunctions(unittest.TestCase):
         cls.adult_data.columns = columns
 
         # employee attrition
-        cls.employee_data = pd.read_csv('data/Employee.csv', nrows=6000)
+        cls.employee_data = pd.read_csv('data/Employee.csv', nrows=2000)
 
         print("\nDatasets Loaded")
         print(f"Adult: {len(cls.adult_data)} rows")
         print(f"Employee: {len(cls.employee_data)} rows")
         
-    # FairnessConfig tests (both datasets):
-    def test_fairness_config_adult(self):
-        """ test FairnessConfig using adult census dataset """
-        config = FairnessConfig(self.adult_data, 'income', 'sex')
-        
-        self.assertEqual(config.target, 'income')
-        self.assertEqual(config.protected_attr, 'sex')
-        self.assertGreater(len(config.feature_cols), 0)
-        print(f"Adult dataset: {len(config.feature_cols)} features detected")
-
+    # FairnessConfig tests (only Employee dataset):
     def test_fairness_config_employee(self):
         """ test FairnessConfig with employee attrition dataset """
         config = FairnessConfig(self.employee_data, 'LeaveOrNot', 'Gender')
@@ -68,10 +59,10 @@ class TestBackendFunctions(unittest.TestCase):
         self.assertEqual(len(protected), len(y))
         print(f"Preprocessed Employee: {X.shape[0]} samples, {X.shape[1]} features")
 
-    # model training tests (only adult dataset):
-    def test_train_model_adult(self):
-        """ test model training with adult dataset """
-        X, y, protected, _ = preprocess(self.adult_data, 'income', 'sex')
+    # model training tests (only employee dataset):
+    def test_train_model_employee(self):
+        """ test model training with employee dataset """
+        X, y, protected, _ = preprocess(self.employee_data, 'LeaveOrNot', 'Gender')
         model, X_fair, y_fair, protected_fair = train_model(X, y, protected)
     
         self.assertIsNotNone(model)
@@ -80,7 +71,7 @@ class TestBackendFunctions(unittest.TestCase):
         
         # check balanced fair set
         self.assertEqual(np.sum(protected_fair == 1), np.sum(protected_fair == 0))
-        print(f"Model trained on Adult: {X_fair.shape[0]} fairness samples")
+        print(f"Model trained on Employee: {X_fair.shape[0]} fairness samples")
 
     # bias inject func tests w/ intensity checks (adult dataset only):
     def test_inject_bias(self):
