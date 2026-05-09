@@ -29,7 +29,7 @@ global_protected_fair= None
 # generic config class
 class FairnessConfig:
     """ 
-    Configuration class for relevant fairness-monitoring tasks. User must specify
+    configuration class for relevant fairness-monitoring tasks. User must specify
     datapath, target column(s), and protected attribute(s)
     """
     def __init__(self, df, target, protected_attr, desired=None, privileged=None):
@@ -73,7 +73,7 @@ class FairnessConfig:
 # helper funcs:
 def preprocess(df, target, protected_attr):
     """
-    Preprocess any relevant dataset using FairnessConfig
+    preprocess any relevant dataset using FairnessConfig
     """
 
     # handle missing vals & create config
@@ -125,7 +125,7 @@ def preprocess(df, target, protected_attr):
 
 def train_model(X, y, protected_attr):
     """
-    Train model with RandomForest separating data into 80:20 ratio, with:
+    train model with RandomForest separating data into 80:20 ratio, with:
         - 60% training
         - 20% fairness evaluation
         - 20% testing 
@@ -185,7 +185,7 @@ def train_model(X, y, protected_attr):
 
 def calc_fairness(y_true, y_pred, protected, name = ""):
     """
-    Calculate fairness for all sets
+    calculate fairness for all sets
     
     negative - disadvantage for unprivilegeds
     pos - advantage for unprivilegeds
@@ -252,7 +252,7 @@ def calc_fairness(y_true, y_pred, protected, name = ""):
 
 def inject_bias(predictions, protected, intensity=0.3):
     """
-    Dataset agnostic bias-injection by flipping predictions 
+    dataset agnostic bias-injection by flipping predictions 
     """
     predictions = predictions.copy()
     
@@ -272,7 +272,7 @@ def inject_bias(predictions, protected, intensity=0.3):
 @app.route('/upload', methods=['POST'])
 def upload_model():
     """
-    Loads in csv/.data file, trains model, and returns baseline metrics
+    loads in csv/.data file, trains model, and returns baseline metrics
     """
     global curr_model, curr_preprocessor, curr_baseline, global_X_fair, global_y_fair, global_protected_fair
 
@@ -318,7 +318,7 @@ def upload_model():
 @app.route('/run_batch', methods=['POST'])
 def run_batch():
     """
-    Runs batch with/without bias, returns fairness metrics
+    runs batch with/without bias, returns fairness metrics
     """
     global curr_model, global_X_fair, global_y_fair, global_protected_fair
 
@@ -356,7 +356,7 @@ def run_batch():
 @app.route('/health', methods=['GET'])
 def check_health():
     """ 
-    Check server health 
+    check server health 
     """
     return jsonify({
         'status': 'running',
