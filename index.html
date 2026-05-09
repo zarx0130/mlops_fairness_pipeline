@@ -504,7 +504,7 @@
             </label>
             <span id="intensityControl" style="display: none;">
                 <label style="margin-right: 8px;">Intensity: <span id="intensityValue">30</span>%</label>
-                <input type="range" id="biasIntensity" min="0" max="100" value="30">
+                <input type="range" id="biasIntensity" min="0" max="99" value="30">
             </span>
             <button class="btn btn-primary" id="runBtn">Run Batch</button>
             <button class="btn btn-secondary" id="resetBtn">Reset</button>
@@ -1433,6 +1433,12 @@
             document.getElementById('driftValue').textContent = avgDrift.toFixed(4);
             
             updateSystemStatus();
+
+            // timeout so can't send too many req at once
+            const btn = document.getElementById('runBtn');
+            btn.disabled = true;
+            await new Promise(r => setTimeout(r, 500));
+            btn.disabled = false;
         });
 
         // reset button listener
@@ -1573,12 +1579,6 @@
                 alert('Error running batch. Make sure backend is running.');
                 return null;
             }
-            
-            // timeout so can't send too many req at once
-            const btn = document.getElementById('runBtn');
-            btn.disabled = true;
-            await new Promise(r => setTimeout(r, 500));
-            btn.disabled = false;
         }
 
         function checkViolations(metrics) {
