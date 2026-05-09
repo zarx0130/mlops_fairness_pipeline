@@ -320,7 +320,6 @@ def run_batch():
     """
     runs batch with/without bias, returns fairness metrics
     """
-    global curr_model, global_X_fair, global_y_fair, global_protected_fair
 
     try:
         # check if trained model
