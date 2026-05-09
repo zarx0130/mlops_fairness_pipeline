@@ -1,7 +1,7 @@
 # MLOps Dynamic Fairness Monitoring Pipeline
 prototyping real-time automated bias detection through python, a Flask-based API integration, and interpretable interactive dashboard
 
-## Why?
+## why?
 for the majority of ML models, ethical alignment is not statically set from training data: it remains in a dynamic state that degrades over time, slowly shifting data & causing bias to emerge
 - models with high accuracy can still discriminate
 - bias often emerges gradually along shifts in data distributions
@@ -10,8 +10,9 @@ for the majority of ML models, ethical alignment is not statically set from trai
 
 the consequences of unfair ML models are not abstract, and it can be argued that fairness monitoring should serve as a prerequesite to deployment for all automated systems leading highstakes decisionmaking
 
-## A Solution
+## a solution:
 this pipeline provides:
+
 **early detection**: identify bias before it impacts users
 
 **automated scenarios**: simulate different bias patterns to understand model behavior before deployment
@@ -30,33 +31,10 @@ this pipeline provides:
 
 **comprehensive testing**: full test suite with unittest and GitHub Actions CI/CD
 
-## project structure
-mlops_fairness_pipeline/
-├── app.py                  # flask backend
-├── index.html              # interactive dashboard
-├── requirements.txt        # python dependencies
-│
-├── data/                   # sample datasets
-│   ├── adult.data         # UCI Adult dataset
-│   ├── Employee.csv       # Employee Attrition dataset
-│
-├── tests/                  # test suite
-│   ├── init.py
-│   ├── test_backend.py    # unit tests
-│   └── test_integration.py # integration tests
-│
-├── notebooks/              # exploratory analysis
-│   ├── 01_data.ipynb
-│   ├── 02_base_training.ipynb
-│   └── 03_database.ipynb
-│
-└── .github/
-└── workflows/
-└── ci.yml          # GitHub Actions CI/CD
-
 ## installation & application
 **clone repository**
 `git clone https://github.com/zarx0130/mlops_fairness_pipeline.git`
+
 `cd mlops_fairness_pipeline`
 
 **install dependencies**
@@ -67,7 +45,7 @@ pip install -r requirements.txt
 
 **configure dataset:**
 - click "upload dataset"
-- aelect a CSV file with:
+- select a CSV file with:
   - binary target column (e.g., `income`, `approved`)
   - binary protected attribute (e.g., `sex`, `race`)
   - additional features
@@ -89,12 +67,12 @@ pip install -r requirements.txt
 
 ## testing datasets 
 **adult census** (`adult.data`)
-target: `income` (<=50k, >50k)
-protected_attr: `sex` (male, female)
+- target: `income` (<=50k, >50k)
+- protected_attr: `sex` (male, female)
 
 **employee attrition**
-target: `LeaveOrNot` (yes, no)
-protected_attr: `Gender` (male, female)
+- target: `LeaveOrNot` (yes, no)
+- protected_attr: `Gender` (male, female)
 
 ## API endpoints
  `POST /upload` - upload dataset & train model
