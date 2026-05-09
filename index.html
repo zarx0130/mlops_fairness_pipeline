@@ -1573,6 +1573,12 @@
                 alert('Error running batch. Make sure backend is running.');
                 return null;
             }
+            
+            // timeout so can't send too many req at once
+            const btn = document.getElementById('runBtn');
+            btn.disabled = true;
+            await new Promise(r => setTimeout(r, 500));
+            btn.disabled = false;
         }
 
         function checkViolations(metrics) {
