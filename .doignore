@@ -1,0 +1,4 @@
+.github/
+notebooks/
+tests/
+*.md
