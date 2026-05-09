@@ -14,7 +14,11 @@ from sklearn.impute import SimpleImputer
 from sklearn.compose import ColumnTransformer
 
 app = Flask(__name__)
-CORS(app)  # to interact as server
+CORS(app, origins=[
+    "https://mlopsfairnesspipeline.site",
+    "https://www.mlopsfairnesspipeline.site",
+    "https://seahorse-app-s3y9r.ondigitalocean.app"
+])  # to interact as server
 
 # global vars
 curr_model = None
@@ -368,4 +372,4 @@ if __name__ == '__main__':
     print("Starting MLOps Fairness backend server...")
     print("Server running on: http://localhost:5000")
     print("Ready to connect to website")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=False)
