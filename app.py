@@ -15,7 +15,7 @@ from sklearn.compose import ColumnTransformer
 
 app = Flask(__name__)
 CORS(app, origins=[
-    "seahorse-app-s3y9r.ondigitalocean.app"
+    "https://seahorse-app-s3y9r.ondigitalocean.app"
   #  "https://mlopsfairnesspipeline.site",
   #  "https://www.mlopsfairnesspipeline.site",
    # "https://seahorse-app-s3y9r.ondigitalocean.app"
