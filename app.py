@@ -2,7 +2,7 @@
 import pickle
 import pandas as pd 
 import numpy as np
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
@@ -274,6 +274,11 @@ def inject_bias(predictions, protected, intensity=0.3):
 
 
 # API endpoints 
+@app.route('/')
+def index():
+    return send_file('index.html')
+
+    
 @app.route('/upload', methods=['POST'])
 def upload_model():
     """
