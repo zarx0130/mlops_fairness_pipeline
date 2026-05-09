@@ -2,3 +2,7 @@
 notebooks/
 tests/
 *.md
+.git/
+.gitignore
+*.yml
+*.yaml
