@@ -1,6 +1,10 @@
 # MLOps Dynamic Fairness Monitoring Pipeline
-prototyping real-time automated bias detection through python, a Flask-based API integration, and interpretable interactive dashboard
+**live demo**: [https://mlopsfairnesspipeline.site](https://mlopsfairnesspipeline.site)
 
+![CI](https://github.com/zarx0130/mlops_fairness_pipeline/workflows/CI%20Pipeline/badge.svg)
+![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)
+
+---
 ## why?
 for the majority of ML models, ethical alignment is not statically set from training data: it remains in a dynamic state that degrades over time, slowly shifting data & causing bias to emerge
 - models with high accuracy can still discriminate
@@ -9,6 +13,8 @@ for the majority of ML models, ethical alignment is not statically set from trai
 - early bias detection prevents harm & maintains trust
 
 the consequences of unfair ML models are not abstract, and it can be argued that fairness monitoring should serve as a prerequesite to deployment for all automated systems leading highstakes decisionmaking
+
+--- 
 
 ## a solution:
 this pipeline provides:
@@ -31,19 +37,55 @@ this pipeline provides:
 
 **comprehensive testing**: full test suite with unittest and GitHub Actions CI/CD
 
+---
+
 ## installation & application
-**clone repository**
-`git clone https://github.com/zarx0130/mlops_fairness_pipeline.git`
+```bash
+# clone repository
+git clone https://github.com/zarx0130/mlops_fairness_pipeline.git
+cd mlops_fairness_pipeline
 
-`cd mlops_fairness_pipeline`
-
-**install dependencies**
+# install dependencies
 pip install -r requirements.txt
+```
 
+---
 
+## local deployment
+**start backend:**
+```bash
+python app.py
+```
 
+**open frontend:**
+- open `index.html` in your browser
+- or visit `http://localhost:5000`
 
-**configure dataset:**
+---
+
+## project structure
+``` bash
+mlops_fairness_pipeline/
+├── app.py                  # flask backend
+├── index.html              # interactive dashboard
+├── requirements.txt        # python dependencies
+├── .python-version         # python version (3.11)
+├── data/                   # sample datasets
+│   ├── adult.data
+│   ├── Employee.csv
+│   └── heart_failure_clinical_records_dataset.csv
+├── tests/                  # test suite
+│   ├── test_backend.py     # unit tests
+│   └── test_integration.py # integration tests
+└── .github/
+└── workflows/
+└── ci.yml          # GitHub Actions CI/CD
+
+```
+
+---
+
+## configure dataset:
 - click "upload dataset"
 - select a CSV file with:
   - binary target column (e.g., `income`, `approved`)
@@ -52,9 +94,13 @@ pip install -r requirements.txt
 - enter column names
 - click "configure & train model"
 
-**run batches:**
+---
+
+## run batches:
 - manual mode: toggle "inject bias", set intensity, click "run batch"
 - auto mode: select a scenario, click "begin auto-run"
+
+---
 
 ## testing
 `python -m unittest discover tests -v`
@@ -65,6 +111,8 @@ pip install -r requirements.txt
 
 **CI/CD**: automated testing on python 3.9, 3.10, 3.11
 
+---
+
 ## testing datasets 
 **adult census** (`adult.data`)
 - target: `income` (<=50k, >50k)
@@ -74,11 +122,80 @@ pip install -r requirements.txt
 - target: `LeaveOrNot` (yes, no)
 - protected_attr: `Gender` (male, female)
 
-## API endpoints
- `POST /upload` - upload dataset & train model
- 
- `POST /run_batch` - run batch prediction w/ optional bias injection
- 
- `GET /health` - check backend status
+---
 
-## deployment - digital ocean
+## API endpoints
+
+`POST /upload`
+upload dataset and train model
+
+**request:**
+```bash
+curl -X POST https://mlopsfairnesspipeline.site/upload \
+  -F "dataset=@adult.data" \
+  -F "target=income" \
+  -F "protected_attr=sex"
+```
+
+**response:**
+```json
+{
+  "status": "success",
+  "baseline": {
+    "stat_diff": -0.335,
+    "eq_opp_diff": -0.080,
+    "pred_parity_diff": 0.014,
+    "acc_diff": 0.158
+  }
+}
+```
+
+---
+
+`POST /run_batch`
+run batch prediction with optional bias injection
+
+**request:**
+```bash
+curl -X POST https://mlopsfairnesspipeline.site/run_batch \
+  -H "Content-Type: application/json" \
+  -d '{"bias": true, "intensity": 0.7}'
+```
+
+**response:**
+```json
+{
+  "stat_diff": -0.445,
+  "eq_opp_diff": -0.112,
+  "pred_parity_diff": 0.089,
+  "acc_diff": 0.201
+}
+```
+
+---
+
+
+`GET /health`
+check backend status
+
+**request:**
+```bash
+curl https://mlopsfairnesspipeline.site/health
+```
+
+**response:**
+```json
+{
+  "status": "running",
+  "model": false
+}
+```
+
+---
+
+## license
+MIT License - see [LICENSE](LICENSE) file for details
+
+---
+
+**built for responsible AI ♡**
