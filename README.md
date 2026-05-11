@@ -29,7 +29,28 @@ this pipeline provides:
 
 **actionable insights**: visualize exactly when and how fairness degrades
 
-**multi-metric fairness analysis**: statistical parity, equal opportunity, predictive parity, accuracy
+**multi-metric fairness analysis**: 
+```bash
+statistical parity difference
+measures difference in positive prediction rates between groups
+- **formula**: P(Ŷ=1|privileged) - P(Ŷ=1|unprivileged)
+- **fair range**: -0.10 to 0.10
+
+equal opportunity difference
+measures difference in true positive rates
+- **formula**: TPR(privileged) - TPR(unprivileged)
+- **fair range**: -0.10 to 0.10
+
+predictive parity difference
+measures difference in precision
+- **formula**: Precision(privileged) - Precision(unprivileged)
+- **fair range**: -0.10 to 0.10
+
+accuracy equality
+measures difference in accuracy
+- **formula**: Accuracy(privileged) - Accuracy(unprivileged)
+- **fair range**: -0.10 to 0.10
+```
 
 **real-time batch processing**: monitor model fairness across 25 batches through real-time charts, alerts, and violation tracking
 
@@ -174,7 +195,6 @@ curl -X POST https://mlopsfairnesspipeline.site/run_batch \
 
 ---
 
-
 `GET /health`
 check backend status
 
@@ -190,6 +210,30 @@ curl https://mlopsfairnesspipeline.site/health
   "model": false
 }
 ```
+
+---
+
+## deployment
+deployed on Digital Ocean App Platform
+
+**deploy your own:**
+1. fork repository
+2. create Digital Ocean account
+3. create new app → connect GitHub repo
+4. configure:
+   - build command: `pip install -r requirements.txt`
+   - run command: `python app.py`
+   - plan: basic ($5/month)
+5. deploy
+
+---
+
+## tech stack:
+**backend**: flask 3.0.0, scikit-learn 1.3.2, pandas 2.1.4, numpy 1.26.2
+
+**frontend**: HTML5, CSS3, JavaScript (ES6+), Chart.js
+
+**testing**: unittest, coverage, GitHub Actions
 
 ---
 

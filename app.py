@@ -15,10 +15,9 @@ from sklearn.compose import ColumnTransformer
 
 app = Flask(__name__)
 CORS(app, origins=[
-    "https://seahorse-app-s3y9r.ondigitalocean.app"
-  #  "https://mlopsfairnesspipeline.site",
-  #  "https://www.mlopsfairnesspipeline.site",
-   # "https://seahorse-app-s3y9r.ondigitalocean.app"
+  #  "https://seahorse-app-s3y9r.ondigitalocean.app"
+    "https://mlopsfairnesspipeline.site",
+    "https://www.mlopsfairnesspipeline.site",
 ])  # to interact as server
 
 # global vars
@@ -278,7 +277,7 @@ def inject_bias(predictions, protected, intensity=0.3):
 def index():
     return send_file('index.html')
 
-    
+
 @app.route('/upload', methods=['POST'])
 def upload_model():
     """
