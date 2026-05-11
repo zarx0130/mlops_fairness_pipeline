@@ -33,23 +33,23 @@ this pipeline provides:
 ```bash
 statistical parity difference
 measures difference in positive prediction rates between groups
-- **formula**: P(Ŷ=1|privileged) - P(Ŷ=1|unprivileged)
-- **fair range**: -0.10 to 0.10
+- formula: P(Ŷ=1|privileged) - P(Ŷ=1|unprivileged)
+- fair range: -0.10 to 0.10
 
 equal opportunity difference
 measures difference in true positive rates
-- **formula**: TPR(privileged) - TPR(unprivileged)
-- **fair range**: -0.10 to 0.10
+- formula: TPR(privileged) - TPR(unprivileged)
+- fair range: -0.10 to 0.10
 
 predictive parity difference
 measures difference in precision
-- **formula**: Precision(privileged) - Precision(unprivileged)
-- **fair range**: -0.10 to 0.10
+- formula: Precision(privileged) - Precision(unprivileged)
+- fair range: -0.10 to 0.10
 
 accuracy equality
 measures difference in accuracy
-- **formula**: Accuracy(privileged) - Accuracy(unprivileged)
-- **fair range**: -0.10 to 0.10
+- formula: Accuracy(privileged) - Accuracy(unprivileged)
+- fair range: -0.10 to 0.10
 ```
 
 **real-time batch processing**: monitor model fairness across 25 batches through real-time charts, alerts, and violation tracking
@@ -94,7 +94,6 @@ mlops_fairness_pipeline/
 ├── data/                   # sample datasets
 │   ├── adult.data
 │   ├── Employee.csv
-│   └── heart_failure_clinical_records_dataset.csv
 ├── tests/                  # test suite
 │   ├── test_backend.py     # unit tests
 │   └── test_integration.py # integration tests
@@ -216,7 +215,6 @@ curl https://mlopsfairnesspipeline.site/health
 ## deployment
 deployed on Digital Ocean App Platform
 
-**deploy your own:**
 1. fork repository
 2. create Digital Ocean account
 3. create new app → connect GitHub repo
