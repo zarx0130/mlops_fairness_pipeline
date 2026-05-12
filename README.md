@@ -149,66 +149,12 @@ mlops_fairness_pipeline/
 `POST /upload`
 upload dataset and train model
 
-**request:**
-```bash
-curl -X POST https://mlopsfairnesspipeline.site/upload \
-  -F "dataset=@adult.data" \
-  -F "target=income" \
-  -F "protected_attr=sex"
-```
-
-**response:**
-```json
-{
-  "status": "success",
-  "baseline": {
-    "stat_diff": -0.335,
-    "eq_opp_diff": -0.080,
-    "pred_parity_diff": 0.014,
-    "acc_diff": 0.158
-  }
-}
-```
-
----
-
 `POST /run_batch`
 run batch prediction with optional bias injection
 
-**request:**
-```bash
-curl -X POST https://mlopsfairnesspipeline.site/run_batch \
-  -H "Content-Type: application/json" \
-  -d '{"bias": true, "intensity": 0.7}'
-```
-
-**response:**
-```json
-{
-  "stat_diff": -0.445,
-  "eq_opp_diff": -0.112,
-  "pred_parity_diff": 0.089,
-  "acc_diff": 0.201
-}
-```
-
----
 
 `GET /health`
 check backend status
-
-**request:**
-```bash
-curl https://mlopsfairnesspipeline.site/health
-```
-
-**response:**
-```json
-{
-  "status": "running",
-  "model": false
-}
-```
 
 ---
 
@@ -226,7 +172,7 @@ deployed on Digital Ocean App Platform
 
 ---
 
-## tech stack:
+## tech:
 **backend**: flask 3.0.0, scikit-learn 1.3.2, pandas 2.1.4, numpy 1.26.2
 
 **frontend**: HTML5, CSS3, JavaScript (ES6+), Chart.js
