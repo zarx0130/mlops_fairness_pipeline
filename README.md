@@ -14,7 +14,7 @@ for the majority of ML models, ethical alignment is not statically set from trai
 - most ML models lack real-time ethics monitoring
 - early bias detection prevents harm & maintains trust
 
-the consequences of unfair ML models are not abstract, and it can be argued that fairness monitoring should serve as a prerequesite to deployment for all automated systems leading highstakes decisionmaking
+the consequences of unfair ML models are not abstract, and it can be argued that fairness monitoring should serve as a prerequisite to deployment for all automated systems leading highstakes decisionmaking
 
 --- 
 
@@ -127,7 +127,7 @@ mlops_fairness_pipeline/
 ## testing
 `python -m unittest discover tests -v`
 
-**umit tests**: backend functions, data preprocessing, model training
+**unit tests**: backend functions, data preprocessing, model training
 
 **integration tests**: full API workflow w/ datasets
 
