@@ -1,5 +1,6 @@
 # MLOps Dynamic Fairness Monitoring Pipeline
 **live demo**: [https://mlopsfairnesspipeline.site](https://mlopsfairnesspipeline.site)
+
 **full report**: [mlops_fairness_capstone_gallagher.pdf](./report/mlops_fairness_capstone_gallagher.pdf)
 
 ![CI](https://github.com/zarx0130/mlops_fairness_pipeline/workflows/CI%20Pipeline/badge.svg)
